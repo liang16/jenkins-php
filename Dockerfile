@@ -5,8 +5,13 @@ FROM jenkins
 USER root
 
 # Install php packages.
-RUN apt-get update && \
-	apt-get -y -f install php5-cli php5-dev php5-curl curl php-pear ant
+RUN apt-get update && apt-get install -y \
+	php5-cli \
+	php5-dev \
+	php5-curl \
+	curl \
+	php-pear \
+	ant
 
 # Install php xdebug extension for code coverage
 # Setup the Xdebug version to install
@@ -34,7 +39,20 @@ RUN set -x \
 RUN curl -L https://phar.phpunit.de/phpunit.phar -o /usr/local/bin/phpunit \
 	&& chmod a+x /usr/local/bin/phpunit
 
-RUN apt-get clean -y
+# Install nodejs
+ENV NODEJS_VERSION 6.3.1
+ENV NODEJS_SHA256 eccc530696d18b07c5785e317b2babbea9c1dd14dbab80be734b820fc241ddea
+
+RUN set -x \
+	&& curl -SL https://nodejs.org/dist/v$NODEJS_VERSION/node-v$NODEJS_VERSION-linux-x64.tar.gz -o node.tar.gz \
+	&& echo $NODEJS_SHA256 node.tar.gz | sha256sum -c - \
+    && mkdir /nodejs \
+	&& tar xvzf node.tar.gz -C /nodejs --strip-components=1
+
+ENV PATH $PATH:/nodejs/bin
+
+#The official Debian and Ubuntu images automatically run apt-get clean, so explicit invocation is not required.
+#RUN apt-get clean -y
 
 # Go back to jenkins user.
 USER jenkins
